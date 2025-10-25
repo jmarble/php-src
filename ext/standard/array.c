@@ -4733,6 +4733,223 @@ PHP_FUNCTION(array_column)
 }
 /* }}} */
 
+/* Helper function to normalize group key values */
+static void normalize_group_key(zval *key, zval *result) {
+	if (Z_TYPE_P(key) == IS_TRUE || Z_TYPE_P(key) == IS_FALSE) {
+		/* Convert boolean to int */
+		ZVAL_LONG(result, Z_TYPE_P(key) == IS_TRUE ? 1 : 0);
+	} else if (Z_TYPE_P(key) == IS_NULL) {
+		/* Convert null to empty string */
+		ZVAL_EMPTY_STRING(result);
+	} else if (Z_TYPE_P(key) == IS_OBJECT) {
+		/* Handle Stringable objects and Enums */
+		if (instanceof_function(Z_OBJCE_P(key), zend_ce_stringable)) {
+			zval tmp;
+			if (zend_std_cast_object_tostring(Z_OBJ_P(key), &tmp, IS_STRING) == SUCCESS) {
+				ZVAL_COPY_VALUE(result, &tmp);
+				return;
+			}
+		}
+		/* For enums, check if it has a value property */
+		zval *enum_value = zend_read_property_ex(Z_OBJCE_P(key), Z_OBJ_P(key), 
+			ZSTR_KNOWN(ZEND_STR_VALUE), true, NULL);
+		if (enum_value && Z_TYPE_P(enum_value) != IS_UNDEF) {
+			ZVAL_COPY(result, enum_value);
+			return;
+		}
+		/* Fall through to copy as-is */
+		ZVAL_COPY(result, key);
+	} else {
+		ZVAL_COPY(result, key);
+	}
+}
+
+/* Helper to extract value from array/object by key */
+static void extract_value_by_key(zval *data, zend_string *key_str, zval *result) {
+	ZVAL_NULL(result);
+	
+	if (Z_TYPE_P(data) == IS_ARRAY) {
+		zval *found = zend_hash_find(Z_ARRVAL_P(data), key_str);
+		if (found) {
+			ZVAL_COPY(result, found);
+		}
+	} else if (Z_TYPE_P(data) == IS_OBJECT) {
+		zval *found = zend_read_property_ex(Z_OBJCE_P(data), Z_OBJ_P(data), key_str, true, NULL);
+		if (found && Z_TYPE_P(found) != IS_UNDEF) {
+			ZVAL_COPY(result, found);
+		}
+	}
+}
+
+/* {{{ Group an array by a field or using a callback */
+PHP_FUNCTION(array_group_by)
+{
+	zval *input;
+	zval *group_by;
+	bool preserve_keys = false;
+	HashTable *input_ht;
+	zend_fcall_info fci = empty_fcall_info;
+	zend_fcall_info_cache fci_cache = empty_fcall_info_cache;
+	zend_string *group_key_str = NULL;
+	bool use_callback = false;
+
+	ZEND_PARSE_PARAMETERS_START(2, 3)
+		Z_PARAM_ARRAY(input)
+		Z_PARAM_ZVAL(group_by)
+		Z_PARAM_OPTIONAL
+		Z_PARAM_BOOL(preserve_keys)
+	ZEND_PARSE_PARAMETERS_END();
+
+	input_ht = Z_ARRVAL_P(input);
+
+	/* Determine grouping method */
+	if (Z_TYPE_P(group_by) == IS_STRING) {
+		group_key_str = Z_STR_P(group_by);
+	} else if (Z_TYPE_P(group_by) == IS_ARRAY) {
+		/* Multi-level grouping not implemented yet */
+		zend_type_error("array_group_by(): Multi-level grouping with arrays is not yet supported");
+		RETURN_THROWS();
+	} else if (zend_is_callable(group_by, 0, NULL)) {
+		/* Setup callback */
+		char *error = NULL;
+		if (!zend_is_callable_ex(group_by, NULL, 0, NULL, &fci_cache, &error)) {
+			if (error) {
+				zend_argument_type_error(2, "must be a valid callback, %s", error);
+				efree(error);
+			} else {
+				zend_argument_type_error(2, "must be a valid callback");
+			}
+			RETURN_THROWS();
+		}
+		if (error) {
+			efree(error);
+		}
+		
+		fci.size = sizeof(fci);
+		ZVAL_COPY_VALUE(&fci.function_name, group_by);
+		use_callback = true;
+	} else {
+		zend_argument_type_error(2, "must be a callable, string, or array");
+		RETURN_THROWS();
+	}
+
+	/* Initialize result array */
+	array_init(return_value);
+
+	/* Iterate through input array */
+	zval *entry;
+	zend_string *string_key;
+	zend_ulong num_key;
+
+	ZEND_HASH_FOREACH_KEY_VAL(input_ht, num_key, string_key, entry) {
+		zval group_keys_zv;
+		zval retval;
+
+		/* Get grouping key(s) */
+		if (use_callback) {
+			/* Call user function with (value, key) */
+			zval args[2];
+			
+			ZVAL_COPY_VALUE(&args[0], entry);
+			if (string_key) {
+				ZVAL_STR_COPY(&args[1], string_key);
+			} else {
+				ZVAL_LONG(&args[1], num_key);
+			}
+
+			fci.retval = &retval;
+			fci.param_count = 2;
+			fci.params = args;
+
+			if (zend_call_function(&fci, &fci_cache) == FAILURE || Z_TYPE(retval) == IS_UNDEF) {
+				zval_ptr_dtor(&args[1]);
+				continue;
+			}
+
+			ZVAL_COPY_VALUE(&group_keys_zv, &retval);
+			zval_ptr_dtor(&args[1]);
+		} else {
+			/* Extract field from array/object */
+			extract_value_by_key(entry, group_key_str, &group_keys_zv);
+		}
+
+		/* Normalize to array of group keys (allow items to be in multiple groups) */
+		zval group_keys_array;
+		if (Z_TYPE(group_keys_zv) != IS_ARRAY) {
+			array_init(&group_keys_array);
+			add_next_index_zval(&group_keys_array, &group_keys_zv);
+		} else {
+			ZVAL_COPY_VALUE(&group_keys_array, &group_keys_zv);
+		}
+
+		/* Iterate through group keys */
+		zval *group_key_val;
+		ZEND_HASH_FOREACH_VAL(Z_ARRVAL(group_keys_array), group_key_val) {
+			zval normalized_key;
+			
+			/* Normalize the group key */
+			normalize_group_key(group_key_val, &normalized_key);
+
+			/* Find or create group array */
+			zval *group_array = NULL;
+
+			if (Z_TYPE(normalized_key) == IS_LONG) {
+				group_array = zend_hash_index_find(Z_ARRVAL_P(return_value), Z_LVAL(normalized_key));
+				if (!group_array) {
+					zval new_group;
+					array_init(&new_group);
+					group_array = zend_hash_index_add(Z_ARRVAL_P(return_value), 
+						Z_LVAL(normalized_key), &new_group);
+				}
+			} else if (Z_TYPE(normalized_key) == IS_STRING) {
+				zend_string *key_str = Z_STR(normalized_key);
+				
+				/* Check if string is numeric - if so, use it as integer key for proper coercion */
+				zend_ulong idx;
+				if (ZEND_HANDLE_NUMERIC(key_str, idx)) {
+					/* Numeric string - treat as integer key */
+					group_array = zend_hash_index_find(Z_ARRVAL_P(return_value), idx);
+					if (!group_array) {
+						zval new_group;
+						array_init(&new_group);
+						group_array = zend_hash_index_add(Z_ARRVAL_P(return_value), idx, &new_group);
+					}
+				} else {
+					/* Non-numeric string */
+					group_array = zend_hash_find(Z_ARRVAL_P(return_value), key_str);
+					if (!group_array) {
+						zval new_group;
+						array_init(&new_group);
+						group_array = zend_hash_add(Z_ARRVAL_P(return_value), key_str, &new_group);
+					}
+				}
+			}
+
+			/* Add value to group */
+			if (group_array) {
+				if (preserve_keys) {
+					if (string_key) {
+						Z_TRY_ADDREF_P(entry);
+						add_assoc_zval_ex(group_array, ZSTR_VAL(string_key), 
+							ZSTR_LEN(string_key), entry);
+					} else {
+						Z_TRY_ADDREF_P(entry);
+						add_index_zval(group_array, num_key, entry);
+					}
+				} else {
+					Z_TRY_ADDREF_P(entry);
+					add_next_index_zval(group_array, entry);
+				}
+			}
+
+			zval_ptr_dtor(&normalized_key);
+		} ZEND_HASH_FOREACH_END();
+
+		zval_ptr_dtor(&group_keys_array);
+	} ZEND_HASH_FOREACH_END();
+}
+/* }}} */
+
 /* {{{ Return input as a new array with the order of the entries reversed */
 PHP_FUNCTION(array_reverse)
 {
