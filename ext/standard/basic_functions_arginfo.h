@@ -1,5 +1,5 @@
 /* This is a generated file, edit the .stub.php file instead.
- * Stub hash: f6bf6cdd07080c01d3a0cb08d71409d05b1084f9 */
+ * Stub hash: a95515e6fa6760eda6a2a911333e23ba7638a2c8 */
 
 ZEND_BEGIN_ARG_WITH_RETURN_TYPE_INFO_EX(arginfo_set_time_limit, 0, 1, _IS_BOOL, 0)
 	ZEND_ARG_TYPE_INFO(0, seconds, IS_LONG, 0)
@@ -3512,18 +3512,18 @@ static void register_basic_functions_symbols(int module_number)
 	REGISTER_LONG_CONSTANT("SORT_LOCALE_STRING", PHP_SORT_LOCALE_STRING, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SORT_NATURAL", PHP_SORT_NATURAL, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("SORT_FLAG_CASE", PHP_SORT_FLAG_CASE, CONST_PERSISTENT);
-	REGISTER_LONG_CONSTANT("SORT_STRICT", PHP_SORT_STRICT, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("CASE_LOWER", PHP_CASE_LOWER, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("CASE_UPPER", PHP_CASE_UPPER, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("COUNT_NORMAL", PHP_COUNT_NORMAL, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("COUNT_RECURSIVE", PHP_COUNT_RECURSIVE, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("ARRAY_FILTER_USE_BOTH", ARRAY_FILTER_USE_BOTH, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("ARRAY_FILTER_USE_KEY", ARRAY_FILTER_USE_KEY, CONST_PERSISTENT);
-	zend_constant *const_ASSERT_ACTIVE = REGISTER_LONG_CONSTANT("ASSERT_ACTIVE", PHP_ASSERT_ACTIVE, CONST_PERSISTENT | CONST_DEPRECATED);
-	zend_constant *const_ASSERT_CALLBACK = REGISTER_LONG_CONSTANT("ASSERT_CALLBACK", PHP_ASSERT_CALLBACK, CONST_PERSISTENT | CONST_DEPRECATED);
-	zend_constant *const_ASSERT_BAIL = REGISTER_LONG_CONSTANT("ASSERT_BAIL", PHP_ASSERT_BAIL, CONST_PERSISTENT | CONST_DEPRECATED);
-	zend_constant *const_ASSERT_WARNING = REGISTER_LONG_CONSTANT("ASSERT_WARNING", PHP_ASSERT_WARNING, CONST_PERSISTENT | CONST_DEPRECATED);
-	zend_constant *const_ASSERT_EXCEPTION = REGISTER_LONG_CONSTANT("ASSERT_EXCEPTION", PHP_ASSERT_EXCEPTION, CONST_PERSISTENT | CONST_DEPRECATED);
+	REGISTER_LONG_CONSTANT("ARRAY_UNIQUE_STRICT", ARRAY_UNIQUE_STRICT, CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("ASSERT_ACTIVE", PHP_ASSERT_ACTIVE, CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("ASSERT_CALLBACK", PHP_ASSERT_CALLBACK, CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("ASSERT_BAIL", PHP_ASSERT_BAIL, CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("ASSERT_WARNING", PHP_ASSERT_WARNING, CONST_PERSISTENT);
+	REGISTER_LONG_CONSTANT("ASSERT_EXCEPTION", PHP_ASSERT_EXCEPTION, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("CONNECTION_ABORTED", PHP_CONNECTION_ABORTED, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("CONNECTION_NORMAL", PHP_CONNECTION_NORMAL, CONST_PERSISTENT);
 	REGISTER_LONG_CONSTANT("CONNECTION_TIMEOUT", PHP_CONNECTION_TIMEOUT, CONST_PERSISTENT);
@@ -3932,37 +3932,6 @@ static void register_basic_functions_symbols(int module_number)
 	ZVAL_STR(&attribute_Deprecated_func_socket_set_timeout_0->args[1].value, attribute_Deprecated_func_socket_set_timeout_0_arg1_str);
 	attribute_Deprecated_func_socket_set_timeout_0->args[1].name = ZSTR_KNOWN(ZEND_STR_MESSAGE);
 #endif
-
-	zend_attribute *attribute_Deprecated_const_ASSERT_ACTIVE_0 = zend_add_global_constant_attribute(const_ASSERT_ACTIVE, ZSTR_KNOWN(ZEND_STR_DEPRECATED_CAPITALIZED), 2);
-	ZVAL_STR(&attribute_Deprecated_const_ASSERT_ACTIVE_0->args[0].value, ZSTR_KNOWN(ZEND_STR_8_DOT_3));
-	attribute_Deprecated_const_ASSERT_ACTIVE_0->args[0].name = ZSTR_KNOWN(ZEND_STR_SINCE);
-	zend_string *attribute_Deprecated_const_ASSERT_ACTIVE_0_arg1_str = zend_string_init("as assert_options() is deprecated", strlen("as assert_options() is deprecated"), 1);
-	ZVAL_STR(&attribute_Deprecated_const_ASSERT_ACTIVE_0->args[1].value, attribute_Deprecated_const_ASSERT_ACTIVE_0_arg1_str);
-	attribute_Deprecated_const_ASSERT_ACTIVE_0->args[1].name = ZSTR_KNOWN(ZEND_STR_MESSAGE);
-
-	zend_attribute *attribute_Deprecated_const_ASSERT_CALLBACK_0 = zend_add_global_constant_attribute(const_ASSERT_CALLBACK, ZSTR_KNOWN(ZEND_STR_DEPRECATED_CAPITALIZED), 2);
-	ZVAL_STR(&attribute_Deprecated_const_ASSERT_CALLBACK_0->args[0].value, ZSTR_KNOWN(ZEND_STR_8_DOT_3));
-	attribute_Deprecated_const_ASSERT_CALLBACK_0->args[0].name = ZSTR_KNOWN(ZEND_STR_SINCE);
-	ZVAL_STR_COPY(&attribute_Deprecated_const_ASSERT_CALLBACK_0->args[1].value, attribute_Deprecated_const_ASSERT_ACTIVE_0_arg1_str);
-	attribute_Deprecated_const_ASSERT_CALLBACK_0->args[1].name = ZSTR_KNOWN(ZEND_STR_MESSAGE);
-
-	zend_attribute *attribute_Deprecated_const_ASSERT_BAIL_0 = zend_add_global_constant_attribute(const_ASSERT_BAIL, ZSTR_KNOWN(ZEND_STR_DEPRECATED_CAPITALIZED), 2);
-	ZVAL_STR(&attribute_Deprecated_const_ASSERT_BAIL_0->args[0].value, ZSTR_KNOWN(ZEND_STR_8_DOT_3));
-	attribute_Deprecated_const_ASSERT_BAIL_0->args[0].name = ZSTR_KNOWN(ZEND_STR_SINCE);
-	ZVAL_STR_COPY(&attribute_Deprecated_const_ASSERT_BAIL_0->args[1].value, attribute_Deprecated_const_ASSERT_ACTIVE_0_arg1_str);
-	attribute_Deprecated_const_ASSERT_BAIL_0->args[1].name = ZSTR_KNOWN(ZEND_STR_MESSAGE);
-
-	zend_attribute *attribute_Deprecated_const_ASSERT_WARNING_0 = zend_add_global_constant_attribute(const_ASSERT_WARNING, ZSTR_KNOWN(ZEND_STR_DEPRECATED_CAPITALIZED), 2);
-	ZVAL_STR(&attribute_Deprecated_const_ASSERT_WARNING_0->args[0].value, ZSTR_KNOWN(ZEND_STR_8_DOT_3));
-	attribute_Deprecated_const_ASSERT_WARNING_0->args[0].name = ZSTR_KNOWN(ZEND_STR_SINCE);
-	ZVAL_STR_COPY(&attribute_Deprecated_const_ASSERT_WARNING_0->args[1].value, attribute_Deprecated_const_ASSERT_ACTIVE_0_arg1_str);
-	attribute_Deprecated_const_ASSERT_WARNING_0->args[1].name = ZSTR_KNOWN(ZEND_STR_MESSAGE);
-
-	zend_attribute *attribute_Deprecated_const_ASSERT_EXCEPTION_0 = zend_add_global_constant_attribute(const_ASSERT_EXCEPTION, ZSTR_KNOWN(ZEND_STR_DEPRECATED_CAPITALIZED), 2);
-	ZVAL_STR(&attribute_Deprecated_const_ASSERT_EXCEPTION_0->args[0].value, ZSTR_KNOWN(ZEND_STR_8_DOT_3));
-	attribute_Deprecated_const_ASSERT_EXCEPTION_0->args[0].name = ZSTR_KNOWN(ZEND_STR_SINCE);
-	ZVAL_STR_COPY(&attribute_Deprecated_const_ASSERT_EXCEPTION_0->args[1].value, attribute_Deprecated_const_ASSERT_ACTIVE_0_arg1_str);
-	attribute_Deprecated_const_ASSERT_EXCEPTION_0->args[1].name = ZSTR_KNOWN(ZEND_STR_MESSAGE);
 }
 
 static zend_class_entry *register_class___PHP_Incomplete_Class(void)

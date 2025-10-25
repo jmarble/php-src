@@ -4977,10 +4977,10 @@ PHP_FUNCTION(array_unique)
 		return;
 	}
 
-	/* Check if SORT_STRICT flag is set */
-	if (sort_type & PHP_SORT_STRICT) {
+	/* Check if ARRAY_UNIQUE_STRICT flag is set */
+	if (sort_type & ARRAY_UNIQUE_STRICT) {
 		strict_mode = true;
-		sort_type &= ~PHP_SORT_STRICT;
+		sort_type &= ~ARRAY_UNIQUE_STRICT;
 	}
 
 	if (sort_type == PHP_SORT_STRING && !strict_mode) {
