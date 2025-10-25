@@ -4964,6 +4964,7 @@ PHP_FUNCTION(array_unique)
 	bucket_compare_func_t cmp;
 	struct bucketindex *arTmp, *cmpdata, *lastkept;
 	uint32_t i, idx;
+	bool strict_mode = false;
 
 	ZEND_PARSE_PARAMETERS_START(1, 2)
 		Z_PARAM_ARRAY(array)
@@ -4976,7 +4977,13 @@ PHP_FUNCTION(array_unique)
 		return;
 	}
 
-	if (sort_type == PHP_SORT_STRING) {
+	/* Check if SORT_STRICT flag is set */
+	if (sort_type & PHP_SORT_STRICT) {
+		strict_mode = true;
+		sort_type &= ~PHP_SORT_STRICT;
+	}
+
+	if (sort_type == PHP_SORT_STRING && !strict_mode) {
 		HashTable seen;
 		zend_long num_key;
 		zend_string *str_key;
@@ -5012,6 +5019,46 @@ PHP_FUNCTION(array_unique)
 		} ZEND_HASH_FOREACH_END();
 
 		zend_hash_destroy(&seen);
+		return;
+	}
+
+	/* Strict mode: use identity comparison (===) */
+	if (strict_mode) {
+		zend_long num_key;
+		zend_string *str_key;
+		zval *val;
+		HashTable *result_ht;
+
+		array_init(return_value);
+		result_ht = Z_ARRVAL_P(return_value);
+
+		ZEND_HASH_FOREACH_KEY_VAL(Z_ARRVAL_P(array), num_key, str_key, val) {
+			zval *result_val;
+			bool is_duplicate = false;
+
+			/* Check if an identical value already exists in result */
+			ZEND_HASH_FOREACH_VAL(result_ht, result_val) {
+				if (zend_is_identical(val, result_val)) {
+					is_duplicate = true;
+					break;
+				}
+			} ZEND_HASH_FOREACH_END();
+
+			if (!is_duplicate) {
+				/* First occurrence of the value */
+				if (UNEXPECTED(Z_ISREF_P(val) && Z_REFCOUNT_P(val) == 1)) {
+					ZVAL_DEREF(val);
+				}
+				Z_TRY_ADDREF_P(val);
+
+				if (str_key) {
+					zend_hash_add_new(result_ht, str_key, val);
+				} else {
+					zend_hash_index_add_new(result_ht, num_key, val);
+				}
+			}
+		} ZEND_HASH_FOREACH_END();
+
 		return;
 	}
 
